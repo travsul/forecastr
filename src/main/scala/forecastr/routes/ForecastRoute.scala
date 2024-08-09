@@ -11,6 +11,7 @@ import forecastr.logic.Output
 import org.http4s.circe.*
 import io.circe.*
 import io.circe.syntax.*
+import io.circe.generic.auto.deriveEncoder
 
 class ForecastRoute[F[_]: Async](weather: Weather[F]) extends Http4sDsl[F] {
   private def formatOutput(outputMaybeForecast: Option[OutputForecast]): Json = {
@@ -24,6 +25,10 @@ class ForecastRoute[F[_]: Async](weather: Weather[F]) extends Http4sDsl[F] {
       (for {
         hourlyForecast <- weather.getHourlyForecast(lat, long)
         resp <- Ok(formatOutput(Output.getOutputForecastFromInput(hourlyForecast)))
-      } yield resp).handleErrorWith(_ => InternalServerError())
+      } yield resp).handleErrorWith {
+        case e: CoordinateErrors.CoordinatesNotFound =>  NotFound(e.asJson)
+        case e: CoordinateErrors.CoordinatesTooLong => BadRequest(e.asJson)
+        case e => InternalServerError()  
+      }
   }
 }
