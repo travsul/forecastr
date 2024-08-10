@@ -11,3 +11,6 @@ The main endpoint is `/forecast/<lat>/<long>` which will give you an output like
   "shortForecast":"Mostly Cloudy"
 }
 ```
+
+Notes:
+- Latitude and Longetitude must be kept to 4 digits past decimal.
